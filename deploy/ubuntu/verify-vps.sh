@@ -35,10 +35,9 @@ echo "--- GET /api/health ---"
 curl -fsS http://127.0.0.1/api/health
 echo ""
 echo "--- GET /api/products?page_size=6 ---"
-curl -fsSI "http://127.0.0.1/api/products?page_size=6" | head -n 1
+curl -fsS -o /dev/null -w "HTTP %{http_code} (%{size_download} bytes)\n" "http://127.0.0.1/api/products?page_size=6"
 echo "--- GET /api/reader/sources ---"
-curl -fsS http://127.0.0.1/api/reader/sources | head -c 200
-echo ""
+curl -fsS -o /dev/null -w "HTTP %{http_code} (%{size_download} bytes)\n" http://127.0.0.1/api/reader/sources
 echo "--- HEAD / ---"
 curl -fsSI http://127.0.0.1/
 
