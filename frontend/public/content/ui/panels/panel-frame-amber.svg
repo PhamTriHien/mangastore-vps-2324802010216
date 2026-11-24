@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 56" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="pfa-base" x1="0" y1="0" x2="240" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="48%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </linearGradient>
+    <linearGradient id="pfa-top-sheen" x1="0" y1="0" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FBBF24" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="#FBBF24" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pfa-bottom-shade" x1="0" y1="40" x2="0" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#451A03" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#451A03" stop-opacity="0.58"/>
+    </linearGradient>
+    <pattern id="pfa-halftone" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.15" fill="#FFFBEB" fill-opacity="0.2"/>
+      <circle cx="6" cy="6" r="1.15" fill="#FFFBEB" fill-opacity="0.2"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="240" height="56" fill="url(#pfa-base)"/>
+  <rect x="0" y="0" width="240" height="26" fill="url(#pfa-top-sheen)"/>
+  <polygon points="178,0 240,0 240,56 154,56" fill="#451A03" fill-opacity="0.22"/>
+  <polygon points="184,0 240,0 240,56 160,56" fill="url(#pfa-halftone)"/>
+  <polygon points="172,0 177,0 153,56 148,56" fill="#FDE68A" fill-opacity="0.52"/>
+  <polygon points="212,0 221,0 197,56 188,56" fill="#FBBF24" fill-opacity="0.26"/>
+  <rect x="0" y="40" width="240" height="16" fill="url(#pfa-bottom-shade)"/>
+  <rect x="0" y="0" width="240" height="1.5" fill="#FDE68A" fill-opacity="0.72"/>
+  <rect x="0" y="53.5" width="240" height="2.5" fill="#451A03" fill-opacity="0.56"/>
+</svg>

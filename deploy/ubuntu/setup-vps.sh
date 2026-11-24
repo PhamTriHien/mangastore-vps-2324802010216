@@ -150,9 +150,10 @@ cd "${APP_DIR}/frontend"
 npm ci
 npm run build
 
+mkdir -p "${APP_DIR}/uploads/avatars" "${APP_DIR}/uploads/covers"
 chown -R mangastore:mangastore "${APP_DIR}"
-chmod 755 "${APP_DIR}" "${APP_DIR}/frontend" "${APP_DIR}/frontend/dist"
-chmod -R a+rX "${APP_DIR}/frontend/dist"
+chmod 755 "${APP_DIR}" "${APP_DIR}/frontend" "${APP_DIR}/frontend/dist" "${APP_DIR}/uploads" "${APP_DIR}/uploads/avatars" "${APP_DIR}/uploads/covers"
+chmod -R a+rX "${APP_DIR}/frontend/dist" "${APP_DIR}/uploads"
 chmod 600 "${ENV_FILE}"
 
 echo "[8/9] Installing systemd service and Nginx reverse proxy..."

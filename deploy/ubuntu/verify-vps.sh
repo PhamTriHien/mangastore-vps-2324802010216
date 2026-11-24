@@ -34,8 +34,10 @@ echo "=== 4. HTTP Endpoint Smoke Checks ==="
 echo "--- GET /api/health ---"
 curl -fsS http://127.0.0.1/api/health
 echo ""
-echo "--- GET /api/stats ---"
-curl -fsS http://127.0.0.1/api/stats
+echo "--- GET /api/products?page_size=6 ---"
+curl -fsSI "http://127.0.0.1/api/products?page_size=6" | head -n 1
+echo "--- GET /api/reader/sources ---"
+curl -fsS http://127.0.0.1/api/reader/sources | head -c 200
 echo ""
 echo "--- HEAD / ---"
 curl -fsSI http://127.0.0.1/

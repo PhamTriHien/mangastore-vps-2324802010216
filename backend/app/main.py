@@ -1,17 +1,18 @@
 from contextlib import asynccontextmanager
 import logging
+from pathlib import Path
 
-from fastapi import Depends, FastAPI
-from fastapi.responses import JSONResponse
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.config import get_settings
+from app.config import ensure_upload_dirs, get_settings
 from app.database import Base, SessionLocal, dispose_engine, get_db, get_engine
-from app.routers import auth, manga
+from app.routers import admin, auth, cart_orders, chatbot, profile, reader, store
 from app.seed import seed_catalog
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ class DynamicCORSMiddleware:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    ensure_upload_dirs()
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
@@ -58,14 +60,28 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(
-    title="MangaStore VPS API",
-    version="1.0.0",
+    title="MangaStore VPS Full API",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
 app.add_middleware(DynamicCORSMiddleware)
 app.include_router(auth.router)
-app.include_router(manga.router)
+app.include_router(store.router)
+app.include_router(cart_orders.router)
+app.include_router(profile.router)
+app.include_router(reader.router)
+app.include_router(admin.router)
+app.include_router(chatbot.router)
+
+
+@app.get("/uploads/{subpath:path}", include_in_schema=False)
+def serve_uploaded_file(subpath: str) -> FileResponse:
+    upload_root = Path(get_settings().upload_dir).resolve()
+    target = (upload_root / subpath).resolve()
+    if not target.is_relative_to(upload_root) or not target.is_file():
+        raise HTTPException(status_code=404, detail="Tệp không tồn tại.")
+    return FileResponse(target)
 
 
 @app.get("/api/health", tags=["health"])

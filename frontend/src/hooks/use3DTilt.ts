@@ -6,7 +6,7 @@ const TILT_MEDIA_QUERY =
 
 export interface Use3DTiltOptions {
   maxTilt?: number;
-  liftZ?: number;
+  liftY?: number;
   restRx?: number;
   restRy?: number;
 }
@@ -18,23 +18,43 @@ export interface Use3DTiltReturn<T extends HTMLElement> {
   onPointerLeave: () => void;
 }
 
-function resetTiltVariables(
+export interface Use3DParallaxReturn<T extends HTMLElement> {
+  ref: RefObject<T | null>;
+  onPointerMove: (event: ReactPointerEvent<T>) => void;
+  onPointerLeave: () => void;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function isBlockedByDrag(el: HTMLElement): boolean {
+  return Boolean(el.closest('[data-drag-scroll][data-dragging="true"]'));
+}
+
+function applyTiltReset(
   el: HTMLElement,
+  enabled: boolean,
   restRx: number,
   restRy: number
 ): void {
-  el.removeAttribute("data-tilting");
-  el.style.setProperty("--rx", `${restRx}deg`);
-  el.style.setProperty("--ry", `${restRy}deg`);
-  el.style.setProperty("--glare-x", "50%");
-  el.style.setProperty("--glare-y", "50%");
-  el.style.setProperty("--tz", "0px");
+  el.classList.remove("ms-tilting");
+  if (enabled && (restRx !== 0 || restRy !== 0)) {
+    el.style.setProperty("--ms-rx", `${restRx}deg`);
+    el.style.setProperty("--ms-ry", `${restRy}deg`);
+  } else {
+    el.style.removeProperty("--ms-rx");
+    el.style.removeProperty("--ms-ry");
+  }
+  el.style.removeProperty("--ms-ty");
+  el.style.removeProperty("--ms-gx");
+  el.style.removeProperty("--ms-gy");
 }
 
 export function use3DTilt<T extends HTMLElement = HTMLDivElement>(
   options: Use3DTiltOptions = {}
 ): Use3DTiltReturn<T> {
-  const { maxTilt = 9, liftZ = 14, restRx = 0, restRy = 0 } = options;
+  const { maxTilt = 6, liftY = -4, restRx = 0, restRy = 0 } = options;
 
   const ref = useRef<T | null>(null);
   const enabledRef = useRef(false);
@@ -55,11 +75,9 @@ export function use3DTilt<T extends HTMLElement = HTMLDivElement>(
     const mediaQuery = window.matchMedia(TILT_MEDIA_QUERY);
     const syncPreference = () => {
       enabledRef.current = mediaQuery.matches;
-      if (!mediaQuery.matches && ref.current) {
+      if (ref.current) {
         cancelPendingFrame();
-        resetTiltVariables(ref.current, 0, 0);
-      } else if (mediaQuery.matches && ref.current) {
-        resetTiltVariables(ref.current, restRx, restRy);
+        applyTiltReset(ref.current, mediaQuery.matches, restRx, restRy);
       }
     };
 
@@ -72,17 +90,126 @@ export function use3DTilt<T extends HTMLElement = HTMLDivElement>(
     };
   }, [cancelPendingFrame, restRx, restRy]);
 
-  const onPointerEnter = useCallback(() => {
-    const el = ref.current;
-    if (!enabledRef.current || !el) return;
-    el.setAttribute("data-tilting", "true");
-    el.style.setProperty("--tz", `${liftZ}px`);
-  }, [liftZ]);
+  const onPointerEnter = useCallback(
+    (event: ReactPointerEvent<T>) => {
+      const el = ref.current;
+      if (!enabledRef.current || !el || event.pointerType === "touch") return;
+      if (isBlockedByDrag(el)) {
+        applyTiltReset(el, enabledRef.current, restRx, restRy);
+        return;
+      }
+      el.classList.add("ms-tilting");
+      el.style.setProperty("--ms-ty", `${liftY}px`);
+    },
+    [liftY, restRx, restRy]
+  );
 
   const onPointerMove = useCallback(
     (event: ReactPointerEvent<T>) => {
       const el = ref.current;
-      if (!enabledRef.current || !el) return;
+      if (!enabledRef.current || !el || event.pointerType === "touch") return;
+      if (isBlockedByDrag(el)) {
+        cancelPendingFrame();
+        applyTiltReset(el, enabledRef.current, restRx, restRy);
+        return;
+      }
+
+      const clientX = event.clientX;
+      const clientY = event.clientY;
+
+      cancelPendingFrame();
+      rafIdRef.current = window.requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        const target = ref.current;
+        if (!target || !enabledRef.current || isBlockedByDrag(target)) {
+          if (target) {
+            applyTiltReset(target, enabledRef.current, restRx, restRy);
+          }
+          return;
+        }
+
+        const rect = target.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return;
+
+        const nx = clamp((clientX - rect.left) / rect.width, 0, 1);
+        const ny = clamp((clientY - rect.top) / rect.height, 0, 1);
+
+        const rx = restRx + (0.5 - ny) * (maxTilt * 2);
+        const ry = restRy + (nx - 0.5) * (maxTilt * 2);
+
+        target.classList.add("ms-tilting");
+        target.style.setProperty("--ms-rx", `${rx.toFixed(2)}deg`);
+        target.style.setProperty("--ms-ry", `${ry.toFixed(2)}deg`);
+        target.style.setProperty("--ms-ty", `${liftY}px`);
+        target.style.setProperty("--ms-gx", `${(nx * 100).toFixed(1)}%`);
+        target.style.setProperty("--ms-gy", `${(ny * 100).toFixed(1)}%`);
+      });
+    },
+    [cancelPendingFrame, liftY, maxTilt, restRx, restRy]
+  );
+
+  const onPointerLeave = useCallback(() => {
+    cancelPendingFrame();
+    const el = ref.current;
+    if (!el) return;
+    applyTiltReset(el, enabledRef.current, restRx, restRy);
+  }, [cancelPendingFrame, restRx, restRy]);
+
+  return {
+    ref,
+    onPointerEnter,
+    onPointerMove,
+    onPointerLeave,
+  };
+}
+
+export function use3DParallax<T extends HTMLElement = HTMLDivElement>(
+  strength = 18
+): Use3DParallaxReturn<T> {
+  const ref = useRef<T | null>(null);
+  const enabledRef = useRef(false);
+  const rafIdRef = useRef<number | null>(null);
+
+  const cancelPendingFrame = useCallback(() => {
+    if (rafIdRef.current !== null) {
+      window.cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+  }, []);
+
+  const clearParallax = useCallback((el: HTMLElement | null) => {
+    if (!el) return;
+    el.style.removeProperty("--ms-px");
+    el.style.removeProperty("--ms-py");
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia(TILT_MEDIA_QUERY);
+    const syncPreference = () => {
+      enabledRef.current = mediaQuery.matches;
+      if (!mediaQuery.matches) {
+        cancelPendingFrame();
+        clearParallax(ref.current);
+      }
+    };
+
+    syncPreference();
+    mediaQuery.addEventListener("change", syncPreference);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncPreference);
+      cancelPendingFrame();
+    };
+  }, [cancelPendingFrame, clearParallax]);
+
+  const onPointerMove = useCallback(
+    (event: ReactPointerEvent<T>) => {
+      const el = ref.current;
+      if (!enabledRef.current || !el || event.pointerType === "touch") return;
 
       const clientX = event.clientX;
       const clientY = event.clientY;
@@ -96,43 +223,23 @@ export function use3DTilt<T extends HTMLElement = HTMLDivElement>(
         const rect = target.getBoundingClientRect();
         if (rect.width <= 0 || rect.height <= 0) return;
 
-        const px = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-        const py = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
+        const nx = clamp((clientX - rect.left) / rect.width, 0, 1) - 0.5;
+        const ny = clamp((clientY - rect.top) / rect.height, 0, 1) - 0.5;
 
-        const rx = (0.5 - py) * 2 * maxTilt;
-        const ry = (px - 0.5) * 2 * maxTilt;
-
-        target.setAttribute("data-tilting", "true");
-        target.style.setProperty("--rx", `${rx.toFixed(2)}deg`);
-        target.style.setProperty("--ry", `${ry.toFixed(2)}deg`);
-        target.style.setProperty("--glare-x", `${(px * 100).toFixed(1)}%`);
-        target.style.setProperty("--glare-y", `${(py * 100).toFixed(1)}%`);
-        target.style.setProperty("--tz", `${liftZ}px`);
+        target.style.setProperty("--ms-px", `${(nx * strength * 2).toFixed(2)}px`);
+        target.style.setProperty("--ms-py", `${(ny * strength * 1.4).toFixed(2)}px`);
       });
     },
-    [cancelPendingFrame, liftZ, maxTilt]
+    [cancelPendingFrame, strength]
   );
 
   const onPointerLeave = useCallback(() => {
     cancelPendingFrame();
-    const el = ref.current;
-    if (!el) return;
-
-    rafIdRef.current = window.requestAnimationFrame(() => {
-      rafIdRef.current = null;
-      const target = ref.current;
-      if (!target) return;
-      if (enabledRef.current) {
-        resetTiltVariables(target, restRx, restRy);
-      } else {
-        resetTiltVariables(target, 0, 0);
-      }
-    });
-  }, [cancelPendingFrame, restRx, restRy]);
+    clearParallax(ref.current);
+  }, [cancelPendingFrame, clearParallax]);
 
   return {
     ref,
-    onPointerEnter,
     onPointerMove,
     onPointerLeave,
   };

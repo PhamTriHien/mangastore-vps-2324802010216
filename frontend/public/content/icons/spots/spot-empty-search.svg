@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" fill="none">
+  <ellipse cx="80" cy="105" rx="54" ry="7" fill="#0B0D14" fill-opacity="0.6"/>
+
+  <g transform="translate(26, 16) rotate(-5)">
+    <rect x="0" y="0" width="76" height="84" rx="6" fill="#131722" stroke="#0B0D14" stroke-width="2.6"/>
+    <rect x="7" y="7" width="38" height="32" rx="2.5" fill="#1B2130" stroke="#F5F6FA" stroke-opacity="0.22" stroke-width="1.5"/>
+    <rect x="49" y="7" width="20" height="32" rx="2.5" fill="#1B2130" stroke="#F5F6FA" stroke-opacity="0.22" stroke-width="1.5"/>
+    <rect x="7" y="44" width="62" height="32" rx="2.5" fill="#1B2130" stroke="#F5F6FA" stroke-opacity="0.22" stroke-width="1.5"/>
+
+    <g fill="#F5F6FA" fill-opacity="0.22">
+      <circle cx="15" cy="15" r="1.4"/>
+      <circle cx="22" cy="15" r="1.4"/>
+      <circle cx="29" cy="15" r="1.4"/>
+      <circle cx="15" cy="22" r="1.4"/>
+      <circle cx="22" cy="22" r="1.4"/>
+      <circle cx="15" cy="29" r="1.4"/>
+    </g>
+
+    <rect x="53" y="13" width="12" height="4" rx="1" fill="#E63946"/>
+    <line x1="14" y1="56" x2="48" y2="56" stroke="#94A3B8" stroke-opacity="0.35" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="14" y1="64" x2="38" y2="64" stroke="#94A3B8" stroke-opacity="0.25" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(107, 68) rotate(42)">
+    <rect x="-4" y="0" width="8" height="10" rx="1.5" fill="#E63946" stroke="#0B0D14" stroke-width="2"/>
+    <rect x="-5" y="9" width="10" height="26" rx="5" fill="#1B2130" stroke="#0B0D14" stroke-width="2.4"/>
+  </g>
+
+  <circle cx="92" cy="54" r="24" fill="#1B2130" stroke="#0B0D14" stroke-width="3"/>
+  <circle cx="92" cy="54" r="18.5" fill="#22D3EE" fill-opacity="0.16" stroke="#F5F6FA" stroke-opacity="0.35" stroke-width="1.5"/>
+
+  <path d="M81 47C84 42 90 39 96 40" stroke="#22D3EE" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M87 54H97M92 49V59" stroke="#F5F6FA" stroke-opacity="0.4" stroke-width="1.8" stroke-linecap="round"/>
+
+  <path d="M126 24L128 29L133 31L128 33L126 38L124 33L119 31L124 29L126 24Z" fill="#F59E0B"/>
+  <path d="M62 24L63.5 27.5L67 29L63.5 30.5L62 34L60.5 30.5L57 29L60.5 27.5L62 24Z" fill="#E63946"/>
+  <circle cx="131" cy="64" r="2.2" fill="#22D3EE"/>
+</svg>

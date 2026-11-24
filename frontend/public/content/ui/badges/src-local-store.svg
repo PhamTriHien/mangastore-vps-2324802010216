@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+  <rect x="7" y="4.5" width="22" height="27" rx="3" fill="#E63946" stroke="#0B0D14" stroke-width="1.6"/>
+  <path d="M25 4.5H26.5C27.88 4.5 29 5.62 29 7V29C29 30.38 27.88 31.5 26.5 31.5H23L25 4.5Z" fill="#9F1239"/>
+  <rect x="7" y="4.5" width="5.2" height="27" rx="2" fill="#1B2130" stroke="#0B0D14" stroke-width="1.6"/>
+  <line x1="9.2" y1="7" x2="9.2" y2="29" stroke="#F5F6FA" stroke-opacity="0.3" stroke-width="1.1" stroke-linecap="round"/>
+  <rect x="9.5" y="26.5" width="19" height="4.5" rx="1.4" fill="#F5F6FA" stroke="#0B0D14" stroke-width="1.5"/>
+  <line x1="12.5" y1="28.7" x2="26.5" y2="28.7" stroke="#94A3B8" stroke-width="1.1" stroke-linecap="round"/>
+  <line x1="14" y1="6.5" x2="24" y2="6.5" stroke="#FDA4AF" stroke-width="1.3" stroke-linecap="round"/>
+  <circle cx="20.5" cy="16" r="5.5" fill="#F59E0B" stroke="#0B0D14" stroke-width="1.6"/>
+  <circle cx="20.5" cy="16" r="3.2" fill="#BE123C" stroke="#FEF3C7" stroke-width="1"/>
+  <polygon points="20.5,13.6 22.7,16 20.5,18.4 18.3,16" fill="#FEF3C7"/>
+</svg>

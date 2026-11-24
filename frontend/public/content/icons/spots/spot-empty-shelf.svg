@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" fill="none">
+  <ellipse cx="80" cy="105" rx="62" ry="6" fill="#0B0D14" fill-opacity="0.55"/>
+
+  <path d="M24 83V34C24 24.06 32.06 16 42 16H118C127.94 16 136 24.06 136 34V83" fill="#131722" fill-opacity="0.65" stroke="#F5F6FA" stroke-opacity="0.08" stroke-width="1.5"/>
+
+  <g fill="#F5F6FA" fill-opacity="0.12">
+    <circle cx="106" cy="36" r="1.5"/>
+    <circle cx="114" cy="36" r="1.5"/>
+    <circle cx="122" cy="36" r="1.5"/>
+    <circle cx="110" cy="44" r="1.5"/>
+    <circle cx="118" cy="44" r="1.5"/>
+    <circle cx="114" cy="52" r="1.5"/>
+  </g>
+
+  <rect x="33" y="34" width="16" height="49" rx="2" fill="#1B2130" stroke="#0B0D14" stroke-width="2.4"/>
+  <rect x="36" y="37" width="10" height="7" rx="1" fill="#F5F6FA"/>
+  <rect x="36" y="70" width="10" height="5" rx="1" fill="#22D3EE"/>
+
+  <g transform="translate(54, 36) rotate(12)">
+    <rect x="0" y="0" width="15" height="47" rx="2" fill="#252E42" stroke="#0B0D14" stroke-width="2.4"/>
+    <rect x="3" y="4" width="9" height="8" rx="1" fill="#E2E8F0"/>
+    <line x1="3" y1="36" x2="12" y2="36" stroke="#F5F6FA" stroke-opacity="0.35" stroke-width="1.8" stroke-linecap="round"/>
+  </g>
+
+  <path d="M84 42H91V69L87.5 64L84 69V42Z" fill="#22D3EE" stroke="#0B0D14" stroke-width="1.8" stroke-linejoin="round"/>
+  <line x1="86.5" y1="46" x2="86.5" y2="57" stroke="#F5F6FA" stroke-width="1.4" stroke-linecap="round"/>
+
+  <rect x="20" y="83" width="120" height="10" rx="2.5" fill="#1B2130" stroke="#0B0D14" stroke-width="2.6"/>
+  <line x1="24" y1="86" x2="136" y2="86" stroke="#F5F6FA" stroke-opacity="0.22" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M32 93H42L36 102H32V93Z" fill="#131722" stroke="#0B0D14" stroke-width="2"/>
+  <path d="M128 93H118L124 102H128V93Z" fill="#131722" stroke="#0B0D14" stroke-width="2"/>
+
+  <path d="M49 34H56V104L52.5 98L49 104V34Z" fill="#E63946" stroke="#0B0D14" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M53.5 35H55V99L53.5 96V35Z" fill="#B91C1C"/>
+
+  <path d="M118 62L119.8 66.2L124 68L119.8 69.8L118 74L116.2 69.8L112 68L116.2 66.2L118 62Z" fill="#F59E0B"/>
+  <circle cx="98" cy="28" r="2" fill="#22D3EE"/>
+</svg>

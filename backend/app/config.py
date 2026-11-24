@@ -22,6 +22,30 @@ class Settings(BaseSettings):
         "http://localhost",
         "http://localhost:5173",
     ]
+    upload_dir: str = str(_ROOT_DIR / "uploads")
+    app_base_url: str = "http://localhost"
+
+    # Optional external integrations configured via environment variables
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.1-8b-instant"
+
+    momo_endpoint: str = "https://test-payment.momo.vn/v2/gateway/api/create"
+    momo_query_endpoint: str = "https://test-payment.momo.vn/v2/gateway/api/query"
+    momo_partner_code: str = "MOMO"
+    momo_access_key: str = ""
+    momo_secret_key: str = ""
+
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_email: str = ""
+    smtp_password: str = ""
+
+    recaptcha_site_key: str = ""
+    recaptcha_secret_key: str = ""
+
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = ""
 
     model_config = SettingsConfigDict(
         env_file=(_ROOT_DIR / ".env", _BACKEND_DIR / ".env", ".env", "../.env"),
@@ -66,3 +90,10 @@ class Settings(BaseSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
+
+
+def ensure_upload_dirs() -> Path:
+    root = Path(get_settings().upload_dir)
+    (root / "avatars").mkdir(parents=True, exist_ok=True)
+    (root / "covers").mkdir(parents=True, exist_ok=True)
+    return root

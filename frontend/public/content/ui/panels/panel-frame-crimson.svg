@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 56" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="pfcr-base" x1="0" y1="0" x2="240" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E63946"/>
+      <stop offset="50%" stop-color="#BE123C"/>
+      <stop offset="100%" stop-color="#9F1239"/>
+    </linearGradient>
+    <linearGradient id="pfcr-top-sheen" x1="0" y1="0" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF4D5A" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#FF4D5A" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pfcr-bottom-shade" x1="0" y1="40" x2="0" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4C0519" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#4C0519" stop-opacity="0.6"/>
+    </linearGradient>
+    <pattern id="pfcr-halftone" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.15" fill="#FFF1F2" fill-opacity="0.2"/>
+      <circle cx="6" cy="6" r="1.15" fill="#FFF1F2" fill-opacity="0.2"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="240" height="56" fill="url(#pfcr-base)"/>
+  <rect x="0" y="0" width="240" height="26" fill="url(#pfcr-top-sheen)"/>
+  <polygon points="178,0 240,0 240,56 154,56" fill="#4C0519" fill-opacity="0.24"/>
+  <polygon points="184,0 240,0 240,56 160,56" fill="url(#pfcr-halftone)"/>
+  <polygon points="172,0 177,0 153,56 148,56" fill="#FDA4AF" fill-opacity="0.48"/>
+  <polygon points="212,0 221,0 197,56 188,56" fill="#FB7185" fill-opacity="0.24"/>
+  <rect x="0" y="40" width="240" height="16" fill="url(#pfcr-bottom-shade)"/>
+  <rect x="0" y="0" width="240" height="1.5" fill="#FDA4AF" fill-opacity="0.65"/>
+  <rect x="0" y="53.5" width="240" height="2.5" fill="#4C0519" fill-opacity="0.58"/>
+</svg>

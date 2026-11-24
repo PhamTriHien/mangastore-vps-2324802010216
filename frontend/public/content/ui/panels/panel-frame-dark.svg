@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 56" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="pfd-base" x1="0" y1="0" x2="240" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1B2130"/>
+      <stop offset="55%" stop-color="#131722"/>
+      <stop offset="100%" stop-color="#0B0D14"/>
+    </linearGradient>
+    <linearGradient id="pfd-top-sheen" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F8FAFC" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#F8FAFC" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pfd-bottom-shade" x1="0" y1="40" x2="0" y2="56" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#05070B" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#05070B" stop-opacity="0.65"/>
+    </linearGradient>
+    <pattern id="pfd-halftone" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.1" fill="#F5F6FA" fill-opacity="0.11"/>
+      <circle cx="6" cy="6" r="1.1" fill="#F5F6FA" fill-opacity="0.11"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="240" height="56" fill="url(#pfd-base)"/>
+  <rect x="0" y="0" width="240" height="24" fill="url(#pfd-top-sheen)"/>
+  <polygon points="178,0 240,0 240,56 154,56" fill="#0B0D14" fill-opacity="0.45"/>
+  <polygon points="184,0 240,0 240,56 160,56" fill="url(#pfd-halftone)"/>
+  <polygon points="172,0 176,0 152,56 148,56" fill="#F5F6FA" fill-opacity="0.16"/>
+  <polygon points="212,0 220,0 196,56 188,56" fill="#252E42" fill-opacity="0.72"/>
+  <rect x="0" y="40" width="240" height="16" fill="url(#pfd-bottom-shade)"/>
+  <rect x="0" y="0" width="240" height="1.5" fill="#F8FAFC" fill-opacity="0.18"/>
+  <rect x="0" y="53.5" width="240" height="2.5" fill="#05070B" fill-opacity="0.72"/>
+</svg>
