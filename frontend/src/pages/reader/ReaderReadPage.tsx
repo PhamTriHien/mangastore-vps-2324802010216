@@ -331,7 +331,7 @@ export function ReaderReadPage() {
       qs.set("page", String(initialPageParam));
     }
 
-    request<ReaderReadWire>(`/reader/read?${qs.toString()}`)
+    request<ReaderReadWire>(`/api/reader/read?${qs.toString()}`)
       .then((res) => {
         if (cancelled) return;
         setData(res);
@@ -612,7 +612,7 @@ export function ReaderReadPage() {
     const timer = window.setTimeout(() => {
       lastSavedProgressRef.current = progressKey;
       apiClient
-        .post("/reader/progress", {
+        .post("/api/reader/progress", {
           source_id: source,
           manga_id: effectiveMangaId,
           chapter_id: chapterId,
@@ -691,7 +691,7 @@ export function ReaderReadPage() {
       const res = await apiClient.post<{
         comment: ReaderCommentWire;
         comment_count: number;
-      }>("/reader/comments", {
+      }>("/api/reader/comments", {
         source_id: source,
         manga_id: effectiveMangaId,
         chapter_id: chapterId,
@@ -725,7 +725,7 @@ export function ReaderReadPage() {
       const res = await apiClient.post<{
         comment: ReaderCommentWire;
         comment_count: number;
-      }>("/reader/comments", {
+      }>("/api/reader/comments", {
         source_id: source,
         manga_id: effectiveMangaId,
         chapter_id: chapterId,
@@ -759,7 +759,7 @@ export function ReaderReadPage() {
     setDeletingComment(true);
     try {
       const res = await apiClient.del<{ comment_count: number }>(
-        `/reader/comments/${deleteTargetId}`,
+        `/api/reader/comments/${deleteTargetId}`,
       );
       setComments((prev) =>
         prev

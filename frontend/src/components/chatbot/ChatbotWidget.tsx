@@ -488,42 +488,46 @@ export function ChatbotWidget() {
         onClick={toggleChat}
         aria-expanded={isOpen}
         aria-label={isOpen ? "Đóng hỗ trợ MangaStore" : "Mở hỗ trợ MangaStore"}
-        style={{
-          background:
-            "radial-gradient(circle at 32% 28%, #2B344B 0%, #161C2C 54%, #0B0D14 100%)",
-          boxShadow:
-            "inset 0 2px 4px rgba(255,255,255,0.24), inset 0 -8px 14px rgba(0,0,0,0.55), 0 6px 0 rgba(76,5,25,0.85), 0 14px 32px rgba(230,57,70,0.36)",
-        }}
-        className="chatbot-orb-float relative flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#E63946]/80 transition-transform duration-200 hover:scale-105 active:translate-y-0.5"
+        className="group relative flex h-16 w-16 cursor-pointer items-center justify-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946]"
       >
         <span
-          aria-hidden="true"
-          className="pointer-events-none absolute left-2.5 right-2.5 top-1 h-5 rounded-full bg-gradient-to-b from-white/30 to-transparent"
-        />
-
-        {!isOpen ? (
+          style={{
+            background:
+              "radial-gradient(circle at 32% 28%, #2B344B 0%, #161C2C 54%, #0B0D14 100%)",
+            boxShadow:
+              "inset 0 2px 4px rgba(255,255,255,0.24), inset 0 -8px 14px rgba(0,0,0,0.55), 0 6px 0 rgba(76,5,25,0.85), 0 14px 32px rgba(230,57,70,0.36)",
+          }}
+          className="chatbot-orb-float pointer-events-none relative flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#E63946]/80 transition-transform duration-200 group-hover:scale-105 group-active:translate-y-0.5"
+        >
           <span
             aria-hidden="true"
-            className="chatbot-radar-ring pointer-events-none absolute -inset-1.5 rounded-full border-2 border-[#E63946]/45"
+            className="pointer-events-none absolute left-2.5 right-2.5 top-1 h-5 rounded-full bg-gradient-to-b from-white/30 to-transparent"
           />
-        ) : null}
 
-        {isOpen ? (
-          <X className="relative z-10 h-6 w-6 text-[#F5F6FA]" />
-        ) : (
-          <img
-            src="/content/icons/spots/spot-assistant.svg"
-            alt="Hỗ trợ MangaStore"
-            className="relative z-10 h-12 w-12 rounded-full object-cover"
-          />
-        )}
+          {!isOpen ? (
+            <span
+              aria-hidden="true"
+              className="chatbot-radar-ring pointer-events-none absolute -inset-1.5 rounded-full border-2 border-[#E63946]/45"
+            />
+          ) : null}
 
-        {!isOpen && hasUnread ? (
-          <span
-            aria-hidden="true"
-            className="absolute -right-0.5 -top-0.5 z-20 h-4 w-4 rounded-full border-2 border-[#0B0D14] bg-[#E63946]"
-          />
-        ) : null}
+          {isOpen ? (
+            <X className="relative z-10 h-6 w-6 text-[#F5F6FA]" />
+          ) : (
+            <img
+              src="/content/icons/spots/spot-assistant.svg"
+              alt="Hỗ trợ MangaStore"
+              className="relative z-10 h-12 w-12 rounded-full object-cover"
+            />
+          )}
+
+          {!isOpen && hasUnread ? (
+            <span
+              aria-hidden="true"
+              className="absolute -right-0.5 -top-0.5 z-20 h-4 w-4 rounded-full border-2 border-[#0B0D14] bg-[#E63946]"
+            />
+          ) : null}
+        </span>
       </button>
     </div>
   );

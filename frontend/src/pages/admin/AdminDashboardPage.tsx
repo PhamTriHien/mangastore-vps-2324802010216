@@ -268,17 +268,17 @@ export function AdminDashboardPage() {
         {kpiCards.map((card) => (
           <div
             key={card.label}
-            className="rounded-3xl border border-white/10 bg-[#131722]/90 p-6 shadow-xl backdrop-blur-xl"
+            className="rounded-3xl border border-white/10 bg-[#131722]/90 p-5 shadow-xl backdrop-blur-xl"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-slate-400">{card.label}</p>
-                <p className="mt-2 truncate text-2xl font-bold text-[#F5F6FA]">
+                <p className="mt-2 whitespace-nowrap text-xl font-bold text-[#F5F6FA] 2xl:text-2xl">
                   {card.value}
                 </p>
               </div>
               <div
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${card.gradient} text-white shadow-lg`}
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${card.gradient} text-white shadow-lg`}
               >
                 <MangaIcon name={card.icon} className="h-6 w-6" />
               </div>
