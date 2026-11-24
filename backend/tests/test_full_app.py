@@ -293,3 +293,51 @@ async def test_admin_rbac_import_restore_and_chatbot(client: httpx.AsyncClient) 
     assert len(chat.json()["product_cards"]) >= 1
     assert (await client.get("/api/chatbot/status", headers=member_headers)).status_code == 403
     assert (await client.get("/api/chatbot/status", headers=staff_headers)).status_code == 200
+
+
+@pytest.mark.anyio
+async def test_reader_http_multi_ip_failover(monkeypatch: pytest.MonkeyPatch):
+    from app.services import reader_service
+
+    reader_service._unhealthy_ip_cache.clear()
+    monkeypatch.setattr(
+        reader_service,
+        "_resolve_host_ips_sync",
+        lambda _host: ["45.129.229.2", "45.129.229.1"],
+    )
+
+    recorded: list[tuple[str, str | None, str | None]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sni = request.extensions.get("sni_hostname")
+        recorded.append((str(request.url), request.headers.get("host"), sni))
+        if request.url.host == "45.129.229.2":
+            raise httpx.RemoteProtocolError("Server disconnected without sending a response.", request=request)
+        return httpx.Response(200, json={"result": "ok"})
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport, follow_redirects=False) as http_client:
+        resp = await reader_service._send_with_ip_failover(
+            http_client,
+            "GET",
+            "https://api.mangadex.org/manga?limit=1",
+            headers={"User-Agent": "WebsiteMangaReader/1.0", "Accept": "application/json"},
+        )
+
+    assert resp.status_code == 200
+    assert resp.json() == {"result": "ok"}
+    assert recorded == [
+        (
+            "https://45.129.229.2/manga?limit=1",
+            "api.mangadex.org",
+            "api.mangadex.org",
+        ),
+        (
+            "https://45.129.229.1/manga?limit=1",
+            "api.mangadex.org",
+            "api.mangadex.org",
+        ),
+    ]
+    assert reader_service._order_candidate_ips(
+        "api.mangadex.org", ["45.129.229.2", "45.129.229.1"]
+    ) == ["45.129.229.1", "45.129.229.2"]

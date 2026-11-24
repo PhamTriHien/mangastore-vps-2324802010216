@@ -285,6 +285,7 @@ class TTLCache:
 
 _api_cache = TTLCache(maxsize=API_CACHE_MAX_ENTRIES, default_ttl=180)
 _image_cache = TTLCache(maxsize=IMAGE_CACHE_MAX_ENTRIES, default_ttl=IMAGE_CACHE_TTL_SECONDS)
+_unhealthy_ip_cache = TTLCache(maxsize=256, default_ttl=120)
 _dynamic_hosts_lock = threading.RLock()
 _dynamic_image_hosts: OrderedDict[str, str] = OrderedDict()
 
@@ -433,13 +434,9 @@ def is_allowed_image_host(host: str | None) -> bool:
 
 
 def _resolve_host_ips_sync(host: str) -> list[str]:
-    infos = socket.getaddrinfo(host, None)
-    ips: list[str] = []
-    for info in infos:
-        sockaddr = info[4]
-        if sockaddr:
-            ips.append(str(sockaddr[0]))
-    return ips
+    infos = socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)
+    ips = [str(info[4][0]) for info in infos if info[4]]
+    return list(dict.fromkeys(ips))
 
 
 def is_safe_public_url(url: str | None, *, check_dns: bool = False) -> bool:
@@ -574,7 +571,16 @@ def resolve_display_image_url(raw_url: str | None, source_id: str | None = None,
     return trimmed
 
 
-async def _ensure_host_resolves_to_public_ip(host: str) -> None:
+_RETRYABLE_TRANSPORT_ERRORS = (
+    httpx.RemoteProtocolError,
+    httpx.ConnectError,
+    httpx.ReadError,
+    httpx.WriteError,
+    httpx.TimeoutException,
+)
+
+
+async def _ensure_host_resolves_to_public_ip(host: str) -> list[str]:
     if _is_private_or_disallowed_host(host):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -598,6 +604,120 @@ async def _ensure_host_resolves_to_public_ip(host: str) -> None:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Địa chỉ IP đích bị chặn bởi chính sách bảo mật.",
             )
+    return ips
+
+
+def _order_candidate_ips(host: str, ips: list[str]) -> list[str]:
+    normalized = host.strip().rstrip(".").lower()
+    healthy: list[str] = []
+    unhealthy: list[str] = []
+    for ip_str in ips:
+        if _unhealthy_ip_cache.get(f"{normalized}|{ip_str}") is not _MISSING:
+            unhealthy.append(ip_str)
+        else:
+            healthy.append(ip_str)
+    return healthy + unhealthy
+
+
+def _build_ip_target_url(parsed, ip_str: str) -> tuple[str, str]:
+    scheme = (parsed.scheme or "https").lower()
+    host = (parsed.hostname or "").strip().rstrip(".").lower()
+    ip_netloc = f"[{ip_str}]" if ":" in ip_str else ip_str
+    host_header = host
+    if parsed.port is not None:
+        ip_netloc = f"{ip_netloc}:{parsed.port}"
+        host_header = f"{host}:{parsed.port}"
+    path = parsed.path or "/"
+    query_part = f"?{parsed.query}" if parsed.query else ""
+    return f"{scheme}://{ip_netloc}{path}{query_part}", host_header
+
+
+async def _send_with_ip_failover(
+    client: httpx.AsyncClient,
+    method: str,
+    url: str,
+    *,
+    headers: dict[str, str],
+    data: dict[str, str] | None = None,
+    candidate_ips: list[str] | None = None,
+    follow_redirects: bool = True,
+    max_redirects: int = 5,
+) -> httpx.Response:
+    current_method = method
+    current_url = url
+    current_data = data
+
+    for hop in range(max_redirects + 1):
+        parsed = urlsplit(current_url)
+        scheme = (parsed.scheme or "").lower()
+        host = (parsed.hostname or "").strip().rstrip(".").lower()
+
+        if hop == 0 and candidate_ips is not None:
+            ips = list(dict.fromkeys(candidate_ips))
+        elif host and not _is_ip_literal(host):
+            try:
+                ips = await asyncio.to_thread(_resolve_host_ips_sync, host)
+            except OSError:
+                ips = []
+        else:
+            ips = []
+
+        if not ips or scheme not in ("http", "https") or _is_ip_literal(host):
+            resp = await client.request(current_method, current_url, headers=headers, data=current_data)
+        else:
+            ordered_ips = _order_candidate_ips(host, ips)
+            attempts = ordered_ips if len(ordered_ips) > 1 else [ordered_ips[0], ordered_ips[0]]
+            resp = None
+            last_exc: Exception | None = None
+
+            for idx, ip_str in enumerate(attempts):
+                ip_url, host_header = _build_ip_target_url(parsed, ip_str)
+                req_headers = dict(headers)
+                req_headers["Host"] = host_header
+                extensions = {"sni_hostname": host} if scheme == "https" else {}
+                has_remaining = idx + 1 < len(attempts)
+
+                try:
+                    req = client.build_request(
+                        current_method,
+                        ip_url,
+                        headers=req_headers,
+                        data=current_data,
+                        extensions=extensions,
+                    )
+                    candidate_resp = await client.send(req, follow_redirects=False)
+                except _RETRYABLE_TRANSPORT_ERRORS as exc:
+                    last_exc = exc
+                    if len(ordered_ips) > 1 or not has_remaining:
+                        _unhealthy_ip_cache.set(f"{host}|{ip_str}", True, ttl=120)
+                    if len(ordered_ips) == 1 and has_remaining:
+                        await asyncio.sleep(0.25)
+                    continue
+
+                if candidate_resp.status_code in (502, 503, 504) and len(ordered_ips) > 1 and has_remaining:
+                    _unhealthy_ip_cache.set(f"{host}|{ip_str}", True, ttl=120)
+                    continue
+
+                resp = candidate_resp
+                break
+
+            if resp is None:
+                assert last_exc is not None
+                raise last_exc
+
+        if follow_redirects and resp.status_code in (301, 302, 303, 307, 308):
+            location = resp.headers.get("location")
+            if not location or hop >= max_redirects:
+                return resp
+            current_url = urljoin(current_url, location.strip())
+            if resp.status_code == 303 or (resp.status_code in (301, 302) and current_method.upper() == "POST"):
+                current_method = "GET"
+                current_data = None
+            continue
+
+        return resp
+
+    raise httpx.TooManyRedirects("Exceeded maximum redirects")
 
 
 async def fetch_proxied_image(url: str, source: str | None = None) -> tuple[bytes, str]:
@@ -631,7 +751,7 @@ async def fetch_proxied_image(url: str, source: str | None = None) -> tuple[byte
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Địa chỉ chuyển hướng ảnh không hợp lệ.",
                 )
-            await _ensure_host_resolves_to_public_ip(host)
+            public_ips = await _ensure_host_resolves_to_public_ip(host)
 
             headers: dict[str, str] = {"Accept": "image/*,*/*;q=0.8"}
             hop_referer = None if (_is_mangadex_host(host) or _is_archive_host(host)) else referer
@@ -642,7 +762,14 @@ async def fetch_proxied_image(url: str, source: str | None = None) -> tuple[byte
                 headers["User-Agent"] = MANGADEX_USER_AGENT
 
             try:
-                resp = await client.get(current_url, headers=headers)
+                resp = await _send_with_ip_failover(
+                    client,
+                    "GET",
+                    current_url,
+                    headers=headers,
+                    candidate_ips=public_ips,
+                    follow_redirects=False,
+                )
             except httpx.HTTPError as exc:
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
@@ -728,8 +855,8 @@ def _is_cloudflare_challenge(html: str) -> bool:
 
 async def _http_get_text(url: str, *, accept: str = "application/json", user_agent: str = MANGADEX_USER_AGENT) -> str:
     headers = {"User-Agent": user_agent, "Accept": accept}
-    async with httpx.AsyncClient(timeout=httpx.Timeout(12.0, connect=5.0), follow_redirects=True) as client:
-        resp = await client.get(url, headers=headers)
+    async with httpx.AsyncClient(timeout=httpx.Timeout(12.0, connect=5.0), follow_redirects=False) as client:
+        resp = await _send_with_ip_failover(client, "GET", url, headers=headers)
         resp.raise_for_status()
         return _decode_bytes(resp.content)
 
@@ -742,8 +869,8 @@ async def _http_get_html(url: str, *, referer: str | None = None) -> str:
     }
     if referer:
         headers["Referer"] = referer
-    async with httpx.AsyncClient(timeout=httpx.Timeout(12.0, connect=5.0), follow_redirects=True) as client:
-        resp = await client.get(url, headers=headers)
+    async with httpx.AsyncClient(timeout=httpx.Timeout(12.0, connect=5.0), follow_redirects=False) as client:
+        resp = await _send_with_ip_failover(client, "GET", url, headers=headers)
         resp.raise_for_status()
         return _decode_bytes(resp.content)
 
@@ -764,8 +891,8 @@ async def _http_post_form(
         headers["Referer"] = referer
     if is_ajax:
         headers["X-Requested-With"] = "XMLHttpRequest"
-    async with httpx.AsyncClient(timeout=httpx.Timeout(12.0, connect=5.0), follow_redirects=True) as client:
-        resp = await client.post(url, data=data, headers=headers)
+    async with httpx.AsyncClient(timeout=httpx.Timeout(12.0, connect=5.0), follow_redirects=False) as client:
+        resp = await _send_with_ip_failover(client, "POST", url, headers=headers, data=data)
         resp.raise_for_status()
         return _decode_bytes(resp.content)
 
@@ -790,8 +917,8 @@ async def _probe_html(
         }
         if referer:
             headers["Referer"] = referer
-        async with httpx.AsyncClient(timeout=httpx.Timeout(2.0, connect=1.5), follow_redirects=True) as client:
-            resp = await client.get(url, headers=headers)
+        async with httpx.AsyncClient(timeout=httpx.Timeout(2.0, connect=1.5), follow_redirects=False) as client:
+            resp = await _send_with_ip_failover(client, "GET", url, headers=headers)
             if 200 <= resp.status_code < 300:
                 html = _decode_bytes(resp.content)
                 available = bool(html.strip()) and not _is_cloudflare_challenge(html) and (
