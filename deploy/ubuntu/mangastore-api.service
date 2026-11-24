@@ -1,0 +1,20 @@
+[Unit]
+Description=MangaStore FastAPI Backend Service
+After=network-online.target postgresql.service
+Wants=network-online.target postgresql.service
+
+[Service]
+Type=simple
+User=mangastore
+Group=mangastore
+WorkingDirectory=/opt/mangastore-vps/backend
+EnvironmentFile=/opt/mangastore-vps/.env
+ExecStart=/opt/mangastore-vps/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mangastore-api
+
+[Install]
+WantedBy=multi-user.target
